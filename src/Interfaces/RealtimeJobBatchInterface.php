@@ -1,23 +1,33 @@
 <?php
 
+declare(strict_types=1);
+
 namespace YogaMeleniawan\JobBatchingWithRealtimeProgress\Interfaces;
 
 use Illuminate\Support\Collection;
 
-interface RealtimeJobBatchInterface {
-
+interface RealtimeJobBatchInterface
+{
     /**
-     * Get all data from database. The data should be in collection.
+     * Data to process. Each item becomes one queued task and one tick on the progress bar.
      *
-     * @return \Illuminate\Support\Collection;
+     * @return Collection<int, mixed>
      */
     public function get_all(): Collection;
 
     /**
-     * This method can be used to save data to database.
-     * In this case, the data can process by your own business logic.
+     * Business logic for a single item. Runs inside a queued job.
      *
-     * @return void
+     * @param  mixed  $data
      */
     public function save($data): void;
+
+    /*
+     * Optional, detected with method_exists so existing repositories keep working:
+     *
+     * public function label(mixed $data, int $index): string;
+     * public function key(mixed $data, int $index): string;
+     *
+     * Without them the bar falls back to label/name/title fields, then "Task N".
+     */
 }

@@ -1,0 +1,12 @@
+{
+  "name": "realtime-job-preview",
+  "private": true,
+  "description": "Browser preview of the Reverb queue progress bar",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "ws": "^8.18.2"
+  }
+}

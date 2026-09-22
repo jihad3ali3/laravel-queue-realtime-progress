@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>مراقب الطابور</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="/realtime-job-batch/assets/realtime-progress.css">
+</head>
+<body class="rjb-page">
+    <div class="rjb-wrap">
+        <header class="rjb-hero">
+            <div class="rjb-brand">
+                <span class="rjb-seal" aria-hidden="true">
+                    <svg viewBox="0 0 32 32" fill="none">
+                        <rect x="6" y="7" width="20" height="3.2" rx="1.6" fill="currentColor"/>
+                        <rect x="6" y="14.4" width="14" height="3.2" rx="1.6" fill="currentColor" opacity=".8"/>
+                        <rect x="6" y="21.8" width="9" height="3.2" rx="1.6" fill="currentColor" opacity=".55"/>
+                    </svg>
+                </span>
+                <div>
+                    <p class="rjb-eyebrow">Laravel Reverb</p>
+                    <h1>مراقب الطابور</h1>
+                </div>
+            </div>
+            <p class="rjb-lead">شوف شريط تقدّم العمليات اللي تشتغل في الـ queue. البث يجي من WebSocket تبع Reverb، مو من Pusher.</p>
+        </header>
+
+        <main class="rjb-grid">
+            <form id="rjb-start-form" class="rjb-form" action="/realtime-job-batches/demo" method="post">
+                <h2>عملية جديدة</h2>
+                <p>كل عنصر يرجع من <code>get_all()</code> يصير مهمة، و<code>save()</code> يشتغل داخل job. Reverb يبث التقدم للشريط.</p>
+
+                <div class="rjb-field">
+                    <label for="rjb-name">اسم العملية</label>
+                    <input id="rjb-name" name="name" type="text" value="مطابقة فواتير سبتمبر" maxlength="120" required>
+                </div>
+
+                <div class="rjb-field">
+                    <label for="rjb-count">عدد المهام <span data-count-out>8</span></label>
+                    <input id="rjb-count" name="count" type="range" min="3" max="24" value="8">
+                </div>
+
+                <div class="rjb-field">
+                    <label for="rjb-pace">سرعة كل مهمة <span data-pace-out>0.4 ث</span></label>
+                    <input id="rjb-pace" name="pace_ms" type="range" min="300" max="2000" step="100" value="400">
+                </div>
+
+                <label class="rjb-check">
+                    <input type="checkbox" name="simulate_failure" value="1">
+                    <span>خلّ مهمة واحدة تفشل، حتى تشوف حالة الخطأ على الشريط.</span>
+                </label>
+
+                <button class="rjb-start" type="submit">ابدأ المعالجة</button>
+                <p class="rjb-note" data-form-note>تبدأ معاينة تلقائية الآن. تقدر تبدأ عملية ثانية من هنا.</p>
+
+                <div class="rjb-steps">
+                    <span>1. الطابور يستلم العملية</span>
+                    <span>2. كل job يبث تقدمه</span>
+                    <span>3. الشريط يتحرك فوراً</span>
+                </div>
+            </form>
+
+            <section class="rjb-panel" data-rjb-panel>
+                <header class="rjb-panel__head">
+                    <div>
+                        <p class="rjb-kicker">العملية الحالية</p>
+                        <h2 data-rjb-title>بانتظار عملية</h2>
+                        <p class="rjb-sub" data-rjb-status>ابدأ معالجة حتى يظهر شريط التقدم هنا.</p>
+                    </div>
+                    <div class="rjb-percent" data-rjb-percent aria-hidden="true"><b>0</b><span>%</span></div>
+                </header>
+                <div class="rjb-bar" data-rjb-bar role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="تقدم العملية">
+                    <span data-rjb-bar-fill></span>
+                </div>
+                <dl class="rjb-stats">
+                    <div><dt>منجز</dt><dd data-rjb-processed>0</dd></div>
+                    <div><dt>متبقي</dt><dd data-rjb-pending>0</dd></div>
+                    <div><dt>فشل</dt><dd data-rjb-failed>0</dd></div>
+                    <div><dt>الإجمالي</dt><dd data-rjb-total>0</dd></div>
+                </dl>
+                <ol class="rjb-tasks" data-rjb-tasks></ol>
+                <footer class="rjb-panel__foot">
+                    <p data-rjb-message>الشريط يتحدث مباشرة من أحداث Reverb.</p>
+                    <button type="button" class="rjb-stop" data-rjb-cancel hidden>إيقاف</button>
+                </footer>
+            </section>
+        </main>
+    </div>
+
+    <aside class="rjb-dock" data-rjb-taskbar>
+        <div class="rjb-dock__head">
+            <span class="rjb-live" data-rjb-dot></span>
+            <div>
+                <strong>شريط العمليات</strong>
+                <small data-rjb-connection>جاري الاتصال بـ Reverb…</small>
+            </div>
+            <span class="rjb-dock__count" data-rjb-count>0</span>
+        </div>
+        <div class="rjb-dock__list" data-rjb-list>
+            <p class="rjb-empty">ما في عمليات في الطابور.</p>
+        </div>
+    </aside>
+
+    <script type="application/json" id="rjb-config">
+        {
+            "broadcaster": "reverb",
+            "key": "realtime-job-key",
+            "sameOrigin": true,
+            "globalChannel": "job-batches",
+            "channelPrefix": "job-batch",
+            "progressEvent": "progress",
+            "finishedEvent": "finished",
+            "statusBase": "/realtime-job-batches"
+        }
+    </script>
+    <script src="/realtime-job-batch/assets/realtime-progress.js" defer></script>
+    <script src="/realtime-job-batch/assets/demo-form.js" defer></script>
+    <script>
+        window.addEventListener("load", function () {
+            window.setTimeout(function () {
+                var form = document.getElementById("rjb-start-form");
+                if (form && window.RealtimeJobProgress) {
+                    if (typeof form.requestSubmit === "function") {
+                        form.requestSubmit();
+                    } else {
+                        form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+                    }
+                }
+            }, 350);
+        });
+    </script>
+</body>
+</html>

@@ -1,17 +1,38 @@
 {
     "name": "yogameleniawan/realtime-job-batching",
-    "description": "Job Batching with Realtime Progress using Pusher for Laravel",
+    "description": "Realtime queue progress bars for Laravel, broadcast with Laravel Reverb",
     "type": "library",
     "license": "MIT",
-    "autoload": {
-        "psr-4": {
-            "YogaMeleniawan\\JobBatchingWithRealtimeProgress\\": "src/"
-        }
-    },
+    "keywords": ["laravel", "reverb", "queue", "batch", "progress", "websocket"],
     "authors": [
         {
             "name": "Yoga Meleniawan Pamungkas"
         }
     ],
-    "require": {}
+    "require": {
+        "php": "^8.2",
+        "illuminate/broadcasting": "^10.48|^11.0|^12.0|^13.0",
+        "illuminate/bus": "^10.48|^11.0|^12.0|^13.0",
+        "illuminate/cache": "^10.48|^11.0|^12.0|^13.0",
+        "illuminate/queue": "^10.48|^11.0|^12.0|^13.0",
+        "illuminate/routing": "^10.48|^11.0|^12.0|^13.0",
+        "illuminate/support": "^10.48|^11.0|^12.0|^13.0",
+        "illuminate/view": "^10.48|^11.0|^12.0|^13.0"
+    },
+    "suggest": {
+        "laravel/reverb": "Broadcast progress to the browser. Set BROADCAST_CONNECTION=reverb."
+    },
+    "autoload": {
+        "psr-4": {
+            "YogaMeleniawan\\JobBatchingWithRealtimeProgress\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "YogaMeleniawan\\JobBatchingWithRealtimeProgress\\Providers\\RealtimeJobBatchProvider"
+            ],
+            "aliases": {}
+        }
+    }
 }

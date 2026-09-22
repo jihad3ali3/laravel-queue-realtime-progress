@@ -1,46 +1,45 @@
 <?php
 
+declare(strict_types=1);
+
 namespace YogaMeleniawan\JobBatchingWithRealtimeProgress\Events;
 
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
-use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use YogaMeleniawan\JobBatchingWithRealtimeProgress\Events\Concerns\BroadcastsViaPackageConnection;
 
 class FinishedJobEvent implements ShouldBroadcastNow
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
-
-    /**
-     * Create a new event instance.
-     *
-     * @return void
-     */
+    use BroadcastsViaPackageConnection, Dispatchable, InteractsWithSockets, SerializesModels;
 
     public function __construct(
-        public $finished,
+        public $finished = true,
         public string $channelName = 'channel-job-finish',
         public string $broadcastName = 'broadcast-job-finish'
     ) {
-        //
     }
 
-    /**
-     * Get the channels the event should broadcast on.
-     *
-     * @return \Illuminate\Broadcasting\Channel|array
-     */
-    public function broadcastOn()
+    public function broadcastOn(): Channel
     {
         return new Channel($this->channelName);
     }
 
-    public function broadcastAs()
+    public function broadcastAs(): string
     {
         return $this->broadcastName;
     }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function broadcastWith(): array
+    {
+        return [
+            'finished' => $this->finished,
+        ];
+    }
+
 }

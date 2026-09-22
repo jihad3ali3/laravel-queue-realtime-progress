@@ -1,134 +1,60 @@
-# 🚀 Laravel Job Batching with Realtime Progress
+# مراقب تقدّم الـ Queue عبر Laravel Reverb
 
-<div align="center">
+شريط تقدّم لعمليات الـ queue. كل مهمة تخلص، Reverb يبث حالتها، والواجهة تحرّك الشريط بدون تحديث الصفحة.
 
-![Laravel Job Batching Banner](https://github.com/yogameleniawan/laravel-queue-realtime-progress/assets/64576201/42cf05bb-559d-4f62-950d-c1c66ebb4a8a)
+الحزمة ما زالت على نفس الفكرة: repository فيه `get_all()` و `save()`، و `RealtimeJobBatch` يوزّع العناصر على batch. الفرق إن البث صار عبر **Laravel Reverb**، وفي شريط عمليات جاهز للواجهة.
 
-[![Latest Version](https://img.shields.io/packagist/v/yogameleniawan/realtime-job-batching.svg?style=flat-square)](https://packagist.org/packages/yogameleniawan/realtime-job-batching)
-[![Total Downloads](https://img.shields.io/packagist/dt/yogameleniawan/realtime-job-batching.svg?style=flat-square)](https://packagist.org/packages/yogameleniawan/realtime-job-batching)
-[![License](https://img.shields.io/packagist/l/yogameleniawan/realtime-job-batching.svg?style=flat-square)](https://packagist.org/packages/yogameleniawan/realtime-job-batching)
+## المتطلبات
 
-*Execute Laravel job batches with real-time progress tracking using Pusher WebSocket*
+- PHP 8.2+
+- Laravel 10.48 أو 11 أو 12 أو 13
+- [Laravel Reverb](https://laravel.com/docs/reverb)
+- Queue worker (`database` أو `redis`). اتصال `sync` يشتغل للتجربة، بس الطلب يبقى مفتوح لين تخلص المهام.
 
-</div>
-
-## 🌐 Language / Bahasa
-
-Choose your preferred language for documentation:
-
-🇺🇸 **English** | [View English Documentation](#-english-documentation) |
-
-🇮🇩 **Bahasa Indonesia** | [Lihat Dokumentasi Bahasa Indonesia](#-dokumentasi-bahasa-indonesia) |
-
-### Quick Navigation
-- [🚀 Getting Started](#️-installation) | [🚀 Memulai](#️-instalasi)
-- [📖 API Reference](#-api-response) | [📖 Referensi API](#-response-api)
-- [💡 Examples](#-javascript-setup) | [💡 Contoh](#-setup-javascript)
-
----
-
-## 📖 English Documentation
-
-### 🎯 Overview
-
-Laravel Job Batching with Realtime Progress is a powerful package that allows you to execute batch jobs with real-time progress tracking. Monitor your job execution progress live using WebSocket technology powered by Pusher.
-
-### 🎬 Live Demo
-
-![Job Batching Preview](https://github.com/yogameleniawan/job-batching-with-realtime-progress/assets/64576201/039aacca-dcab-4fc2-a5e9-b99e1e0202ab)
-
-### 📑 Table of Contents
-
-- [✨ Features](#-features)
-- [📋 Requirements](#-requirements)
-- [⚙️ Installation](#️-installation)
-- [🔧 Configuration](#-configuration)
-- [🛠️ Implementation](#️-implementation)
-- [📊 JavaScript Setup](#-javascript-setup)
-- [📈 API Response](#-api-response)
-- [🤝 Contributing](#-contributing)
-- [📝 Changelog](#-changelog)
-- [👥 Credits](#-credits)
-- [📄 License](#-license)
-
-### ✨ Features
-
-- 🔄 **Real-time Progress Tracking** - Monitor job execution progress in real-time
-- 📡 **WebSocket Integration** - Uses Pusher for instant updates
-- 🎯 **Batch Processing** - Handle multiple jobs efficiently
-- 🔌 **Easy Integration** - Simple setup with Laravel projects
-- 📊 **Progress Metrics** - Get detailed progress information
-- 🎨 **Customizable** - Flexible implementation for various use cases
-
-### 📋 Requirements
-
-- ![PHP](https://img.shields.io/badge/PHP-%3E%3D7.4-blue) [PHP 7.4 or Higher](https://www.php.net/)
-- ![Laravel](https://img.shields.io/badge/Laravel-%3E%3D8.0-red) [Laravel 8 or Higher](https://www.laravel.com/)
-- 🔗 [Laravel Job Queue](https://laravel.com/docs/10.x/queues#jobs-and-database-transactions)
-- 📡 [Pusher Account](https://pusher.com/)
-
-### ⚙️ Installation
-
-#### Step 1: Database Setup
-
-Create necessary migration tables:
+## التثبيت
 
 ```bash
-# Create job table
+php artisan install:broadcasting --reverb
+composer require yogameleniawan/realtime-job-batching
+php artisan vendor:publish --tag=realtime-job-batch-config
+```
+
+في `.env`:
+
+```env
+BROADCAST_CONNECTION=reverb
+
+REVERB_APP_ID=realtime-job
+REVERB_APP_KEY=realtime-job-key
+REVERB_APP_SECRET=realtime-job-secret
+REVERB_HOST=127.0.0.1
+REVERB_PORT=8080
+REVERB_SCHEME=http
+REVERB_SERVER_HOST=0.0.0.0
+REVERB_SERVER_PORT=8080
+
+# اتركها فاضية محلياً. عبيها لو المتصفح يوصل لـ Reverb من دومين أو بورت مختلف.
+REVERB_PUBLIC_HOST=
+REVERB_PUBLIC_PORT=
+REVERB_PUBLIC_SCHEME=
+
+QUEUE_CONNECTION=database
+REALTIME_JOB_DEMO=true
+```
+
+`REVERB_HOST` هو عنوان سيرفر PHP وهو يبث. المتصفح ما يتصل على `127.0.0.1` إلا لو الصفحة نفسها مفتوحة محلياً. لو الموقع خلف بروكسي، حط العنوان العام في `REVERB_PUBLIC_*`.
+
+جداول الـ queue، لو مو موجودة:
+
+```bash
 php artisan queue:table
-
-# Create job batches table  
 php artisan queue:batches-table
-
-# Run migrations
 php artisan migrate
 ```
 
-#### Step 2: Install Package
-
-```bash
-composer require yogameleniawan/realtime-job-batching
-```
-
-#### Step 3: Pusher Setup
-
-Install Pusher PHP SDK:
-
-```bash
-composer require pusher/pusher-php-server
-```
-
-### 🔧 Configuration
-
-#### Pusher Configuration
-
-1. **Create Pusher App**: Visit [Pusher Dashboard](https://dashboard.pusher.com/channels) to create a new Channels app
-
-2. **Environment Variables**: Add these variables to your `.env` file:
-
-```env
-PUSHER_APP_ID=your_pusher_app_id
-PUSHER_APP_KEY=your_pusher_app_key
-PUSHER_APP_SECRET=your_pusher_app_secret
-PUSHER_HOST=
-PUSHER_PORT=443  
-PUSHER_SCHEME=https
-PUSHER_APP_CLUSTER=mt1
-```
-
-### 🛠️ Implementation
-
-#### Create Service Repository
-
-1. **Create Repository Directory**: Create folder `app/Repositories` in your project
-
-2. **Create Repository Class**: For example, `VerificationRepository.php`
-
-3. **Implement Interface**: Your repository must implement `RealtimeJobBatchInterface`
+## المستودع
 
 ```php
-<?php
-
 namespace App\Repositories;
 
 use Illuminate\Support\Collection;
@@ -136,440 +62,163 @@ use YogaMeleniawan\JobBatchingWithRealtimeProgress\Interfaces\RealtimeJobBatchIn
 
 class VerificationRepository implements RealtimeJobBatchInterface
 {
-    /**
-     * Get all data to be processed
-     * @return Collection
-     */
     public function get_all(): Collection
     {
-        // Return collection of data to be processed
         return collect([
-            // Your data here
+            ['key' => 'invoice-1', 'label' => 'مطابقة فاتورة #1'],
+            ['key' => 'invoice-2', 'label' => 'مطابقة فاتورة #2'],
         ]);
     }
 
-    /**
-     * Process individual data item
-     * @param mixed $data
-     * @return void
-     */
-    public function save($data): void
+    public function save(mixed $data): void
     {
-        // Your business logic here
-        // Update/delete/process the data
+        // منطق المهمة الواحدة. يشتغل داخل job.
+    }
+
+    public function label(mixed $data, int $index): string
+    {
+        return $data['label'];
+    }
+
+    public function key(mixed $data, int $index): string
+    {
+        return $data['key'];
     }
 }
 ```
 
-#### Create Controller Method
+`label()` و `key()` اختياريين. بدونهم الشريط يحاول يقرأ `label` أو `name` أو `title`.
 
-Create a controller method to handle your job process:
+## تشغيل الباتش
 
 ```php
-<?php
-
-namespace App\Http\Controllers;
-
-use YogaMeleniawan\JobBatchingWithRealtimeProgress\RealtimeJobBatch;
 use App\Repositories\VerificationRepository;
+use YogaMeleniawan\JobBatchingWithRealtimeProgress\RealtimeJobBatch;
 
-class BatchController extends Controller
-{
-    public function executeVerification()
-    {
-        $result = RealtimeJobBatch::setRepository(new VerificationRepository())
-                                 ->execute(name: 'User Verification Process');
-        
-        return response()->json([
-            'message' => 'Batch job started successfully',
-            'batch_id' => $result->id
-        ]);
-    }
-}
+$batch = RealtimeJobBatch::setRepository(new VerificationRepository())
+    ->onQueue('default')
+    ->execute('مطابقة فواتير سبتمبر');
+
+return response()->json([
+    'batch_id' => $batch->id,
+    'progress' => RealtimeJobBatch::snapshot($batch->id),
+]);
 ```
 
-#### Method Explanation
+`$batch->id` هو نفسه رقم الشريط. كل عنصر من `get_all()` يصير job، و `save()` يتنفّذ داخله.
 
-- **`setRepository(RealtimeJobBatchInterface $repository)`**: Sets the repository class to use
-- **`execute(string $name)`**: Executes the job batch with a custom name
+## الشريط في الواجهة
 
-### 📊 JavaScript Setup
+حطهم في أي layout. ما يحتاج Vite:
 
-#### For Laravel Blade Views
-
-Add this script to your blade template:
-
-```html
-<script src="https://js.pusher.com/7.2/pusher.min.js"></script>
-<script>
-    // Initialize Pusher
-    var pusher = new Pusher('YOUR_PUSHER_APP_KEY', {
-        cluster: 'mt1'
-    });
-
-    // Listen for progress updates
-    var progressChannel = pusher.subscribe('channel-job-batching');
-    progressChannel.bind('broadcast-job-batching', function(data) {
-        console.log('Progress Update:', data);
-        
-        // Update your progress bar
-        updateProgressBar(data.progress);
-        updateStats(data);
-    });
-
-    // Listen for completion
-    var finishChannel = pusher.subscribe('channel-finished-job');
-    finishChannel.bind('request-finished-job', function(data) {
-        if (data.finished === true) {
-            console.log('Job completed!');
-            resetProgressBar();
-        }
-    });
-
-    // Helper functions
-    function updateProgressBar(progress) {
-        document.getElementById('progress-bar').style.width = progress + '%';
-        document.getElementById('progress-text').textContent = progress + '%';
-    }
-
-    function updateStats(data) {
-        document.getElementById('total-jobs').textContent = data.total;
-        document.getElementById('pending-jobs').textContent = data.pending;
-    }
-
-    function resetProgressBar() {
-        updateProgressBar(0);
-        // Add your completion logic here
-    }
-</script>
+```blade
+<x-realtime-job-panel />
+<x-realtime-job-taskbar />
 ```
 
-#### For Other Frameworks
+- اللوحة تعرض النسبة، المنجز، المتبقي، الفاشل، وقائمة المهام.
+- الشريط السفلي يثبت عمليات الطابور الشغالة، حتى لو فتحت صفحة ثانية فيها نفس المكوّن.
 
-For React, Vue, or other JavaScript frameworks, check the [Pusher documentation](https://pusher.com/docs/channels/getting_started/javascript/?ref=docs-index).
+المكوّن يفتح WebSocket بنفسه على Reverb، على المسار `/app/{REVERB_APP_KEY}`. ما يحمّل Pusher، وما يستخدم اتصال Pusher حتى لو باقي التطبيق لسّه عليه.
 
-### 📈 API Response
+أحداث الحزمة تنشر على اتصال `reverb` حتى لو `BROADCAST_CONNECTION=pusher`. عشان كذا شريط التقدم ما يروح لـ Pusher Channels.
 
-The WebSocket will send progress updates in this format:
+الاستماع اليدوي، لو ركّبت Echo على Reverb:
+
+```js
+Echo.channel('job-batches').listen('.progress', (data) => {
+    console.log(data.percentage, data.processed, data.pending, data.total);
+});
+```
+
+القنوات:
+
+- `job-batches` لكل العمليات
+- `job-batch.{batchId}` لعملية واحدة
+
+القنوات عامة. لا تعرض فيها بيانات حساسة، أو غيّر `routes.middleware` وأضف قناة خاصة في تطبيقك لو التقدم خاص بمستخدم.
+
+## التشغيل
+
+ثلاث عمليات:
+
+```bash
+php artisan serve
+php artisan reverb:start
+php artisan queue:work
+```
+
+صفحة المعاينة، بعد `REALTIME_JOB_DEMO=true` وخارج الإنتاج:
+
+```text
+/realtime-job-batch/demo
+```
+
+تبدأ batch تجريبي وتحرك الشريط. عطّلها في الإنتاج.
+
+## شكل الحدث
 
 ```json
 {
-    "finished": false,
-    "progress": 10,
-    "pending": 90,
-    "total": 100,
-    "data": {
-        "batch_id": "uuid-string",
-        "name": "User Verification Process",
-        "started_at": "2024-01-01T10:00:00Z"
-    }
+  "batch_id": "9f0c...",
+  "name": "مطابقة فواتير سبتمبر",
+  "status": "processing",
+  "finished": false,
+  "cancelled": false,
+  "progress": 42,
+  "percentage": 42,
+  "processed": 5,
+  "pending": 6,
+  "failed": 1,
+  "total": 12,
+  "current": { "key": "invoice-6", "label": "مطابقة فاتورة #6", "status": "processing" },
+  "tasks": []
 }
 ```
 
-#### Response Fields
+`progress` نسبة من 0 إلى 100. `pending` عدد المتبقي، مو عدد المنفَّذ.
 
-- **`finished`**: Boolean indicating if the batch is complete
-- **`progress`**: Number of completed jobs
-- **`pending`**: Number of remaining jobs  
-- **`total`**: Total number of jobs in the batch
-- **`data`**: Additional batch information
+`status`: `queued` ، `processing` ، `finished` ، `finished_with_failures` ، `failed` ، `cancelled`.
 
-### 🤝 Contributing
+إيقاف عملية:
 
-We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
-
-### 📝 Changelog
-
-Please see [CHANGELOG](CHANGELOG.md) for more information about recent changes.
-
-### 👥 Credits
-
-- [Yoga Meleniawan Pamungkas](https://github.com/yogameleniawan) - *Original Author*
-- [All Contributors](../../contributors) - *Community Contributors*
-
-### 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-## 📖 Dokumentasi Bahasa Indonesia
-
-### 🎯 Ringkasan
-
-Laravel Job Batching with Realtime Progress adalah package yang memungkinkan Anda menjalankan batch job dengan pelacakan progres real-time. Pantau eksekusi job Anda secara langsung menggunakan teknologi WebSocket yang didukung oleh Pusher.
-
-### 🎬 Demo Langsung
-
-![Preview Job Batching](https://github.com/yogameleniawan/job-batching-with-realtime-progress/assets/64576201/039aacca-dcab-4fc2-a5e9-b99e1e0202ab)
-
-### 📑 Daftar Isi
-
-- [✨ Fitur](#-fitur)
-- [📋 Persyaratan](#-persyaratan)
-- [⚙️ Instalasi](#️-instalasi)
-- [🔧 Konfigurasi](#-konfigurasi)
-- [🛠️ Implementasi](#️-implementasi)
-- [📊 Setup JavaScript](#-setup-javascript)
-- [📈 Response API](#-response-api)
-- [🤝 Kontribusi](#-kontribusi)
-- [📝 Changelog](#-changelog-1)
-- [👥 Kredit](#-kredit)
-- [📄 Lisensi](#-lisensi)
-
-### ✨ Fitur
-
-- 🔄 **Pelacakan Progres Real-time** - Pantau progres eksekusi job secara real-time
-- 📡 **Integrasi WebSocket** - Menggunakan Pusher untuk update instan
-- 🎯 **Pemrosesan Batch** - Menangani multiple job secara efisien
-- 🔌 **Integrasi Mudah** - Setup sederhana dengan proyek Laravel
-- 📊 **Metrik Progres** - Dapatkan informasi progres yang detail
-- 🎨 **Dapat Dikustomisasi** - Implementasi fleksibel untuk berbagai kasus penggunaan
-
-### 📋 Persyaratan
-
-- ![PHP](https://img.shields.io/badge/PHP-%3E%3D7.4-blue) [PHP 7.4 atau Lebih Tinggi](https://www.php.net/)
-- ![Laravel](https://img.shields.io/badge/Laravel-%3E%3D8.0-red) [Laravel 8 atau Lebih Tinggi](https://www.laravel.com/)
-- 🔗 [Laravel Job Queue](https://laravel.com/docs/10.x/queues#jobs-and-database-transactions)
-- 📡 [Akun Pusher](https://pusher.com/)
-
-### ⚙️ Instalasi
-
-#### Langkah 1: Setup Database
-
-Buat tabel migrasi yang diperlukan:
-
-```bash
-# Buat tabel job
-php artisan queue:table
-
-# Buat tabel job batches
-php artisan queue:batches-table
-
-# Jalankan migrasi
-php artisan migrate
+```http
+POST /realtime-job-batches/{batchId}/cancel
 ```
 
-#### Langkah 2: Install Package
+## إعدادات مهمة
 
-```bash
-composer require yogameleniawan/realtime-job-batching
-```
+| المفتاح | المعنى |
+| --- | --- |
+| `REALTIME_JOB_BROADCAST_CONNECTION` | اتصال بث خاص بالحزمة. فاضي = اتصال التطبيق، خلّه `reverb` |
+| `REALTIME_JOB_QUEUE` | اسم الطابور |
+| `REALTIME_JOB_TIMEOUT` | مهلة المهمة بالثواني |
+| `REALTIME_JOB_ALLOW_FAILURES` | مهمة فاشلة ما توقف الباقي |
+| `REALTIME_JOB_LEGACY_CHANNELS` | رجّع قنوات الإصدار 1: `channel-job-batching` |
+| `REALTIME_JOB_DEMO` | صفحة المعاينة |
 
-#### Langkah 3: Setup Pusher
+لو البث فشل لأن Reverb واقف، المهمة نفسها ما تفشل. الخطأ ينتسجّل ويكمل `save()`.
 
-Install Pusher PHP SDK:
+## English
 
-```bash
-composer require pusher/pusher-php-server
-```
-
-### 🔧 Konfigurasi
-
-#### Konfigurasi Pusher
-
-1. **Buat Aplikasi Pusher**: Kunjungi [Dashboard Pusher](https://dashboard.pusher.com/channels) untuk membuat aplikasi Channels baru
-
-2. **Variabel Environment**: Tambahkan variabel ini ke file `.env` Anda:
-
-```env
-PUSHER_APP_ID=your_pusher_app_id
-PUSHER_APP_KEY=your_pusher_app_key
-PUSHER_APP_SECRET=your_pusher_app_secret
-PUSHER_HOST=
-PUSHER_PORT=443
-PUSHER_SCHEME=https
-PUSHER_APP_CLUSTER=mt1
-```
-
-### 🛠️ Implementasi
-
-#### Buat Service Repository
-
-1. **Buat Direktori Repository**: Buat folder `app/Repositories` di proyek Anda
-
-2. **Buat Class Repository**: Misalnya, `VerificationRepository.php`
-
-3. **Implement Interface**: Repository Anda harus mengimplementasikan `RealtimeJobBatchInterface`
+Same package, but progress is a Reverb WebSocket, not Pusher Channels. The browser opens `/app/{REVERB_APP_KEY}` itself and does not load `pusher-js`. Package events publish on the `reverb` broadcast connection even if the rest of the app still uses Pusher. Implement `RealtimeJobBatchInterface`, then:
 
 ```php
-<?php
-
-namespace App\Repositories;
-
-use Illuminate\Support\Collection;
-use YogaMeleniawan\JobBatchingWithRealtimeProgress\Interfaces\RealtimeJobBatchInterface;
-
-class VerificationRepository implements RealtimeJobBatchInterface
-{
-    /**
-     * Dapatkan semua data yang akan diproses
-     * @return Collection
-     */
-    public function get_all(): Collection
-    {
-        // Return collection data yang akan diproses
-        return collect([
-            // Data Anda di sini
-        ]);
-    }
-
-    /**
-     * Proses item data individual
-     * @param mixed $data
-     * @return void
-     */
-    public function save($data): void
-    {
-        // Logic bisnis Anda di sini
-        // Update/delete/proses data
-    }
-}
+$batch = RealtimeJobBatch::setRepository(new VerificationRepository())
+    ->execute('September invoices');
 ```
 
-#### Buat Method Controller
+Set `BROADCAST_CONNECTION=reverb`, run `php artisan reverb:start` and `php artisan queue:work`, and drop the Blade components into a layout:
 
-Buat method controller untuk menangani proses job Anda:
-
-```php
-<?php
-
-namespace App\Http\Controllers;
-
-use YogaMeleniawan\JobBatchingWithRealtimeProgress\RealtimeJobBatch;
-use App\Repositories\VerificationRepository;
-
-class BatchController extends Controller
-{
-    public function executeVerification()
-    {
-        $result = RealtimeJobBatch::setRepository(new VerificationRepository())
-                                 ->execute(name: 'Proses Verifikasi User');
-        
-        return response()->json([
-            'message' => 'Batch job berhasil dimulai',
-            'batch_id' => $result->id
-        ]);
-    }
-}
+```blade
+<x-realtime-job-panel />
+<x-realtime-job-taskbar />
 ```
 
-#### Penjelasan Method
+The browser subscribes to `job-batches`. Each event carries `percentage`, `processed`, `pending`, `failed`, `total`, and the task list. Enable `REALTIME_JOB_DEMO=true` outside production and open `/realtime-job-batch/demo`.
 
-- **`setRepository(RealtimeJobBatchInterface $repository)`**: Mengatur class repository yang akan digunakan
-- **`execute(string $name)`**: Menjalankan job batch dengan nama kustom
+`examples/preview` is a browser preview of that same bar. It speaks the Reverb WebSocket protocol so the progress UI can be opened without booting a full Laravel app.
 
-### 📊 Setup JavaScript
+## الرخصة
 
-#### Untuk Laravel Blade Views
-
-Tambahkan script ini ke template blade Anda:
-
-```html
-<script src="https://js.pusher.com/7.2/pusher.min.js"></script>
-<script>
-    // Inisialisasi Pusher
-    var pusher = new Pusher('YOUR_PUSHER_APP_KEY', {
-        cluster: 'mt1'
-    });
-
-    // Listen untuk update progres
-    var progressChannel = pusher.subscribe('channel-job-batching');
-    progressChannel.bind('broadcast-job-batching', function(data) {
-        console.log('Update Progres:', data);
-        
-        // Update progress bar Anda
-        updateProgressBar(data.progress);
-        updateStats(data);
-    });
-
-    // Listen untuk penyelesaian
-    var finishChannel = pusher.subscribe('channel-finished-job');
-    finishChannel.bind('request-finished-job', function(data) {
-        if (data.finished === true) {
-            console.log('Job selesai!');
-            resetProgressBar();
-        }
-    });
-
-    // Helper functions
-    function updateProgressBar(progress) {
-        document.getElementById('progress-bar').style.width = progress + '%';
-        document.getElementById('progress-text').textContent = progress + '%';
-    }
-
-    function updateStats(data) {
-        document.getElementById('total-jobs').textContent = data.total;
-        document.getElementById('pending-jobs').textContent = data.pending;
-    }
-
-    function resetProgressBar() {
-        updateProgressBar(0);
-        // Tambahkan logic completion Anda di sini
-    }
-</script>
-```
-
-#### Untuk Framework Lain
-
-Untuk React, Vue, atau framework JavaScript lainnya, periksa [dokumentasi Pusher](https://pusher.com/docs/channels/getting_started/javascript/?ref=docs-index).
-
-### 📈 Response API
-
-WebSocket akan mengirim update progres dalam format ini:
-
-```json
-{
-    "finished": false,
-    "progress": 10,
-    "pending": 90,
-    "total": 100,
-    "data": {
-        "batch_id": "uuid-string",
-        "name": "Proses Verifikasi User",
-        "started_at": "2024-01-01T10:00:00Z"
-    }
-}
-```
-
-#### Field Response
-
-- **`finished`**: Boolean yang menunjukkan apakah batch sudah selesai
-- **`progress`**: Jumlah job yang sudah selesai
-- **`pending`**: Jumlah job yang tersisa
-- **`total`**: Total jumlah job dalam batch
-- **`data`**: Informasi tambahan batch
-
-### 🤝 Kontribusi
-
-Kami menyambut kontribusi! Silakan lihat [Panduan Kontribusi](CONTRIBUTING.md) kami untuk detail.
-
-### 📝 Changelog
-
-Silakan lihat [CHANGELOG](CHANGELOG.md) untuk informasi lebih lanjut tentang perubahan terbaru.
-
-### 👥 Kredit
-
-- [Yoga Meleniawan Pamungkas](https://github.com/yogameleniawan) - *Penulis Asli*
-- [Semua Kontributor](../../contributors) - *Kontributor Komunitas*
-
-### 📄 Lisensi
-
-Proyek ini dilisensikan di bawah Lisensi MIT - lihat file [LICENSE](LICENSE) untuk detail.
-
----
-
-<div align="center">
-
-**[⬆ Back to top](#-laravel-job-batching-with-realtime-progress) | [⬆ Kembali ke atas](#-laravel-job-batching-with-realtime-progress) | [⬆ トップに戻る](#-laravel-job-batching-with-realtime-progress)**
-
----
-
-### 🌟 Star this repository if you find it helpful!
-
-Made with ❤️ by [Yoga Meleniawan Pamungkas](https://github.com/yogameleniawan)
-
-[![GitHub stars](https://img.shields.io/github/stars/yogameleniawan/laravel-queue-realtime-progress.svg?style=social&label=Star)](https://github.com/yogameleniawan/laravel-queue-realtime-progress)
-[![GitHub forks](https://img.shields.io/github/forks/yogameleniawan/laravel-queue-realtime-progress.svg?style=social&label=Fork)](https://github.com/yogameleniawan/laravel-queue-realtime-progress/fork)
-
-</div>
+MIT. المؤلف الأصلي: [Yoga Meleniawan Pamungkas](https://github.com/yogameleniawan).
